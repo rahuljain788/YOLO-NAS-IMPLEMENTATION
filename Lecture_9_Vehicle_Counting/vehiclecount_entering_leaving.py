@@ -47,32 +47,29 @@ classNames = ["person", "bicycle", "car", "motorcycle",
             "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush" ]
 
 count = 0
+total_count_up = 0
+total_count_down = 0
+
 while cap.isOpened():
     ret_, frame = cap.read()
     count+=1
     if count % 5 == 0:
         if ret_:
-            detections = np.empty((0,6))
-            print("detections ", detections)
+            detections = np.empty((0,5))
             # resize the image to 50% of original size to fit on the screen
-            frame = cv2.resize(frame, (0, 0), fx=0.8, fy=0.8, interpolation=cv2.INTER_AREA)
+            # frame = cv2.resize(frame, (0, 0), fx=0.8, fy=0.8, interpolation=cv2.INTER_AREA)
             result = list(model.predict(frame, conf=0.4))[0]
-            # print("prediction result ", result)
             bbox_xyxys = result.prediction.bboxes_xyxy.tolist()
             confidences = result.prediction.confidence
             labels = result.prediction.labels.tolist()
-            print("bbox_xyxys ", bbox_xyxys)
-            print("confidences ", confidences)
-            print("labels ", labels)
+
             for (bbox_xyxy, confidence, cls) in zip(bbox_xyxys, confidences, labels):
                 bbox = np.array(bbox_xyxy)
                 x1, y1, x2, y2 = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
                 conf = math.ceil((confidence*100)) / 100
-                currentArray = np.array([x1, y1, x2, y2, conf, cls])
+                currentArray = np.array([x1, y1, x2, y2, conf])
                 detections = np.vstack((detections, currentArray))
-            print("detections ", detections)
             tracker_dets = tracker.update(detections)
-            print("tracker_dets", tracker_dets)
             if len(tracker_dets) > 0:
                 bbox_xyxy = tracker_dets[:, :4]
                 identities = tracker_dets[:,8]
